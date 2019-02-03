@@ -1,4 +1,6 @@
 import json
+import zipfile
+import tempfile
 import requests
 from bs4 import BeautifulSoup
 
@@ -43,11 +45,13 @@ class Malshare(Site):
             print('[MALSHARE] No hash provided')
             return False
 
+
 class Malekal(Site):
     def __init__(self, **kwargs):
         self.base_url = 'http://malwaredb.malekal.com'
         self.password = 'infected'
         self.output = kwargs['output']
+        self.extract = kwargs['extract'] == 'True'
 
     def crawl(self, n):
         found = 0
@@ -64,17 +68,26 @@ class Malekal(Site):
                     break
             page += 1
 
-
     def download(self, **kwargs):
         md5 = kwargs['url'].split('=')[1]
         print("[MALEKAL] Downloading `{}`".format(md5))
         r = requests.get('{}/{}'.format(self.base_url,kwargs['url']),
                          stream=True)
         r.raise_for_status()
-        with open('{}/{}'.format(self.output, md5), 'wb') as f:
-            for chunk in r.iter_content(chunk_size=128):
-                f.write(chunk)
+        if self.extract:
+            with tempfile.NamedTemporaryFile(suffix='zip') as ftmp:
+                for chunk in r.iter_content(chunk_size=128):
+                    ftmp.write(chunk)
+                zipf = zipfile.ZipFile(ftmp.name)
+                zipf.extractall(path='{}'.format(self.output),
+                                pwd=self.password
+                               )
+        else
+            with open('{}/{}'.format(self.output, md5), 'wb') as f:
+                for chunk in r.iter_content(chunk_size=128):
+                    f.write(chunk)
         return True
+
 
 class VXVault(Site):
     def __init__(self, **kwargs):
