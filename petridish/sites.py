@@ -57,7 +57,7 @@ class Malekal(Site):
         found = 0
         url = '{}?page={}'
         page = 0
-        while found <= n:
+        while found < n:
             r = requests.get(url.format(self.base_url, page))
             r.raise_for_status()
             soup = BeautifulSoup(r.text, 'html.parser')
@@ -75,14 +75,17 @@ class Malekal(Site):
                          stream=True)
         r.raise_for_status()
         if self.extract:
-            with tempfile.NamedTemporaryFile(suffix='zip') as ftmp:
+            name = None
+            with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as f:
+                name = f.name
                 for chunk in r.iter_content(chunk_size=128):
-                    ftmp.write(chunk)
-                zipf = zipfile.ZipFile(ftmp.name)
-                zipf.extractall(path='{}'.format(self.output),
-                                pwd=self.password
-                               )
-        else
+                    f.write(chunk)
+            zipf = zipfile.ZipFile(name)
+            zipf.extractall(path='{}'.format(self.output),
+                            pwd=self.password
+                           )
+            os.unlink(name)
+        else:
             with open('{}/{}'.format(self.output, md5), 'wb') as f:
                 for chunk in r.iter_content(chunk_size=128):
                     f.write(chunk)
