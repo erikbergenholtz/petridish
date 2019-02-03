@@ -108,3 +108,10 @@ bin
 include
 lib
 share
+
+# Local test files
+local.cfg
+
+# vim
+.*.swp
+.*.swo
