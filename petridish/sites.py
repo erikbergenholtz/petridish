@@ -21,17 +21,24 @@ class Malshare(Site):
         r = requests.get(daily.format(self.base_url, self.api_key))
         r.raise_for_status()
         hashes = json.loads(r.text)
-        print(hashes)
         for h in hashes:
             self.download(md5=h['md5'])
 
     def download(self, **kwargs):
         try:
             md5 = kwargs['md5']
+            url = '{}/api.php?api_key={}&action=details&hash={}'
+            r = requests.get(url.format(self.base_url, self.api_key, md5)
+            details = json.loads(r.text)
+            print(details)
+            return
             print("[MALSHARE] Downloading `{}`".format(md5))
             url = '{}/api.php?api_key={}&action=getfile&hash={}'
-            r = requests.get(url.format(self.base_url, self.api_key, md5))
-            print(r)
+            r = requests.get(url.format(self.base_url, self.api_key, md5),
+                             stream=True)
+            with open('{}.exe'.format(md5), 'wb') as f:
+                for chunk in r.iter_content(chunk_size=128):
+                    f.write(chunk)
         except KeyError:
             print('[MALSHARE] No hash provided')
 
