@@ -85,6 +85,7 @@ class Malekal(Site):
             zipf.extractall(path='{}'.format(self.output),
                             pwd=bytes(self.password, 'utf8')
                            )
+            zipf.close()
             os.unlink(name)
         else:
             with open('{}/{}'.format(self.output, md5), 'wb') as f:
