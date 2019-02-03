@@ -82,7 +82,7 @@ class Malekal(Site):
                     f.write(chunk)
             zipf = zipfile.ZipFile(name)
             zipf.extractall(path='{}'.format(self.output),
-                            pwd=self.password
+                            pwd=bytes(self.password, 'utf8')
                            )
             os.unlink(name)
         else:
