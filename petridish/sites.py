@@ -12,13 +12,12 @@ class Site:
 
 class Malshare(Site):
     def __init__(self, **kwargs):
-        print(kwargs['apikey'])
         self.api_key = kwargs['apikey']
         self.output = kwargs['output']
         self.base_url = 'https://malshare.com'
 
     def crawl(self, n):
-        daily = '{}/api.php?api_key={}&action=getlist'
+        daily = '{}/api.php?api_key={}&action=type&type=PE32'
         r = requests.get(daily.format(self.base_url, self.api_key))
         r.raise_for_status()
         hashes = json.loads(r.text)
@@ -31,12 +30,6 @@ class Malshare(Site):
     def download(self, **kwargs):
         try:
             md5 = kwargs['md5']
-            url = '{}/api.php?api_key={}&action=details&hash={}'
-            r = requests.get(url.format(self.base_url, self.api_key, md5))
-            r.raise_for_status()
-            details = json.loads(r.text)
-            if details['F_TYPE'] != 'PE32':
-                return False
             print("[MALSHARE] Downloading `{}`".format(md5))
             url = '{}/api.php?api_key={}&action=getfile&hash={}'
             r = requests.get(url.format(self.base_url, self.api_key, md5),
