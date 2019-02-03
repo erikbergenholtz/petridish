@@ -32,7 +32,7 @@ class Malshare(Site):
         hashes = json.loads(r.text)
         found = 0
         for h in hashes:
-            found += 1 if self.download(md5=h['md5']) else 0
+            found += 1 if self.download(md5=h['md5'], details=False) else 0
             if found == n:
                 break
         day = datetime.date.today()
