@@ -2,6 +2,8 @@ import os
 import json
 import zipfile
 import tempfile
+import datetime
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -15,13 +17,17 @@ class Site:
 
 class Malshare(Site):
     def __init__(self, **kwargs):
-        self.api_key = kwargs['apikey']
-        self.output = kwargs['output']
+        cfg           = kwargs['cfg']
+        self.output   = kwargs['output']
+        self.api_key  = cfg['apikey']
+        self.skip     = cfg['skip'] == 'True'
         self.base_url = 'https://malshare.com'
 
     def crawl(self, n):
-        daily = '{}/api.php?api_key={}&action=getlist'
-        r = requests.get(daily.format(self.base_url, self.api_key))
+        if self.skip:
+            return
+        url = '{}/api.php?api_key={}&action=getlist'
+        r = requests.get(url.format(self.base_url, self.api_key))
         r.raise_for_status()
         hashes = json.loads(r.text)
         found = 0
@@ -29,10 +35,29 @@ class Malshare(Site):
             found += 1 if self.download(md5=h['md5']) else 0
             if found == n:
                 break
+        day = datetime.date.today()
+        while found < n:
+            day = day - datetime.timedelta(1)
+            print(day.strftime('%d-%m-%Y'))
+            url = '{}/daily/{date}/malshare_fileList.{date}.txt'
+            r = requests.get(url.format(self.base_url, date=day))
+            r.raise_for_status()
+            hashes = r.text.split('\n')
+            for md5 in hashes:
+                found += 1 if self.download(md5=md5, details=True) else 0
+                if found >= n:
+                    break
 
     def download(self, **kwargs):
         try:
-            md5 = kwargs['md5']
+            md5     = kwargs['md5']
+            details = kwargs['details']
+            if details:
+                url = '{}/api.php?api_key={}&action=details&hash={}'
+                r = requests.get(url.format(self.base_url, self.api_key, md5))
+                details = json.loads(r.text)
+                if details['F_TYPE'] != 'PE32':
+                    return False
             print("[MALSHARE] Downloading `{}`".format(md5))
             url = '{}/api.php?api_key={}&action=getfile&hash={}'
             r = requests.get(url.format(self.base_url, self.api_key, md5),
@@ -49,12 +74,16 @@ class Malshare(Site):
 
 class Malekal(Site):
     def __init__(self, **kwargs):
+        cfg           = kwargs['cfg']
+        self.output   = kwargs['output']
+        self.extract  = cfg['extract'] == 'True'
+        self.skip     = cfg['skip'] == 'True'
         self.base_url = 'http://malwaredb.malekal.com'
         self.password = 'infected'
-        self.output = kwargs['output']
-        self.extract = kwargs['extract'] == 'True'
 
     def crawl(self, n):
+        if self.skip:
+            return
         found = 0
         url = '{}?page={}'
         page = 0

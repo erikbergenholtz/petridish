@@ -28,10 +28,10 @@ def main():
 
     sites = [
              #petridish.sites.VXVault(),
-             #petridish.sites.Malshare(apikey=cfg['MALSHARE']['apikey'],
-             #                         output=cfg['GENERAL']['output']),
+             petridish.sites.Malshare(output=cfg['GENERAL']['output'],
+                                      cfg=cfg['MALSHARE']),
              petridish.sites.Malekal(output=cfg['GENERAL']['output'],
-                                     extract=cfg['MALEKAL']['extract']),
+                                     cfg=cfg['MALEKAL'])
             ]
     for site in sites:
         site.crawl(args.n)
