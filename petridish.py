@@ -28,7 +28,8 @@ def main():
 
     sites = [
              #petridish.sites.VXVault(),
-             petridish.sites.Malshare(apikey=cfg['MALSHARE']['apikey']),
+             petridish.sites.Malshare(apikey=cfg['MALSHARE']['apikey'],
+                                      output=cfg['MALSHARE']['output']),
             ]
     for site in sites:
         site.crawl(args.n)

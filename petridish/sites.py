@@ -14,6 +14,7 @@ class Malshare(Site):
     def __init__(self, **kwargs):
         print(kwargs['apikey'])
         self.api_key = kwargs['apikey']
+        self.output = kwargs['output']
         self.base_url = 'https://malshare.com'
 
     def crawl(self, n):
@@ -21,26 +22,33 @@ class Malshare(Site):
         r = requests.get(daily.format(self.base_url, self.api_key))
         r.raise_for_status()
         hashes = json.loads(r.text)
+        found = 0
         for h in hashes:
-            self.download(md5=h['md5'])
+            found += 1 if self.download(md5=h['md5']) else 0
+            if found == n:
+                break
 
     def download(self, **kwargs):
         try:
             md5 = kwargs['md5']
             url = '{}/api.php?api_key={}&action=details&hash={}'
-            r = requests.get(url.format(self.base_url, self.api_key, md5)
+            r = requests.get(url.format(self.base_url, self.api_key, md5))
+            r.raise_for_status()
             details = json.loads(r.text)
-            print(details)
-            return
+            if details['F_TYPE'] != 'PE32':
+                return False
             print("[MALSHARE] Downloading `{}`".format(md5))
             url = '{}/api.php?api_key={}&action=getfile&hash={}'
             r = requests.get(url.format(self.base_url, self.api_key, md5),
                              stream=True)
-            with open('{}.exe'.format(md5), 'wb') as f:
+            r.raise_for_status()
+            with open('{}/{}.exe'.format(self.output, md5), 'wb') as f:
                 for chunk in r.iter_content(chunk_size=128):
                     f.write(chunk)
+            return True
         except KeyError:
             print('[MALSHARE] No hash provided')
+            return False
 
 class VXVault(Site):
     def __init__(self, **kwargs):
