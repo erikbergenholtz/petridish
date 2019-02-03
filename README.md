@@ -37,6 +37,7 @@ optional arguments:
 Supported data bases
 --------------------
 * malshare.com - Requires API key to be provided via the configuration file
+* malekal.com
 
 Possible future support
 -----------------------
@@ -44,7 +45,6 @@ Possible future support
   have, so I can't test the last steps
 * virusshare.com
 * malware.lu
-* malekal.com
 * scumware.org
 * malc0de.com
 * sucuri.net
