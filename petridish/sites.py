@@ -66,10 +66,9 @@ class Malekal(Site):
 
 
     def download(self, **kwargs):
-        url = '{}/{}'.format(self.base_url,kwargs['url'])
         md5 = kwargs['url'].split('=')[1]
         print("[MALEKAL] Downloading `{}`".format(md5))
-        r = requests.get(url.format(self.base_url, self.api_key, md5),
+        r = requests.get('{}/{}'.format(self.base_url,kwargs['url']),
                          stream=True)
         r.raise_for_status()
         with open('{}/{}'.format(self.output, md5), 'wb') as f:
